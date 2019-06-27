@@ -77,10 +77,7 @@ contract SimpleVoting {
     }
 
     //--- Final phase ---//
-    function tallyVotes()
-    onlyAdministrator
-    onlyAfterVotingSession
-    onlyBeforeVotesTallied public {
+    function tallyVotes() onlyAdmin onlyAfterVotingSession public {
         uint winningVoteCount = 0;
         uint winningProposalIndex = 0;
 
@@ -92,11 +89,11 @@ contract SimpleVoting {
         }
 
         winningProposalId = winningProposalIndex;
-        workflowStatus = WorkflowStatus.VotesTallied;
+        currentStatus = WorkflowStatus.VotesTallied;
 
         emit VotesTalliedEvent();
         emit WorkflowStatusChangeEvent(
-            WorkflowStatus.VotingSessionEnded, workflowStatus);
+            WorkflowStatus.VotingSessionEnded, currentStatus);
     }
 
     //--- Utility functions ---//
@@ -125,16 +122,16 @@ contract SimpleVoting {
     }
 
     function isAdministrator(address _address) public view returns (bool) {
-        return _address == administrator;
+        return _address == admin;
     }
 
     function getWorkflowStatus() public view returns (WorkflowStatus) {
-        return workflowStatus;
+        return currentStatus;
     }
 
     //--- Modifiers ---//
     modifier onlyAdmin() {
-        require(msg.sender = admin,
+        require(msg.sender == admin,
             "the caller of this function must be the administrator");
         _;
     }
@@ -146,37 +143,37 @@ contract SimpleVoting {
     }
 
     modifier onlyDuringVotersRegistration() {
-        require(workflowStatus == WorkflowStatus.RegisteringVoters,
+        require(currentStatus == WorkflowStatus.RegisteringVoters,
             "this function can be called only before proposals registration has started");
         _;
     }
 
     modifier onlyDuringProposalsRegistration() {
-        require(workflowStatus == WorkflowStatus.ProposalsRegistrationStarted,
+        require(currentStatus == WorkflowStatus.ProposalsRegistrationStarted,
             "this function can be called only during proposals registration");
         _;
     }
 
     modifier onlyAfterProposalsRegistration() {
-        require(workflowStatus == WorkflowStatus.ProposalsRegistrationEnded,
+        require(currentStatus == WorkflowStatus.ProposalsRegistrationEnded,
             "this function can be called only after proposals registration has ended");
         _;
     }
 
     modifier onlyDuringVotingSession() {
-        require(workflowStatus == WorkflowStatus.VotingSessionStarted,
+        require(currentStatus == WorkflowStatus.VotingSessionStarted,
             "this function can be called only during the voting session");
         _;
     }
 
     modifier onlyAfterVotingSession() {
-        require(workflowStatus == WorkflowStatus.VotingSessionEnded,
+        require(currentStatus == WorkflowStatus.VotingSessionEnded,
             "this function can be called only after the voting session has ended");
         _;
     }
 
     modifier onlyAfterVotesTallied() {
-        require(workflowStatus == WorkflowStatus.VotesTallied,
+        require(currentStatus == WorkflowStatus.VotesTallied,
             "this function can be called only after votes have been tallied");
         _;
     }
