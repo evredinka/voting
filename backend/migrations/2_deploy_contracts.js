@@ -1,5 +1,5 @@
-var SimpleVoting = artifacts.require("SimpleVoting");
+const SimpleVoting = artifacts.require("SimpleVoting");
 
-module.exports = function(deployer) {
-  deployer.deploy(SimpleVoting);
+module.exports = deployer => {
+    deployer.deploy(SimpleVoting);
 };
