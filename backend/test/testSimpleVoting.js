@@ -1,23 +1,23 @@
 const SimpleVoting = artifacts.require("./SimpleVoting.sol");
 
-contract('SimpleVoting', accounts => {
+contract('SimpleVoting', () => {
 
-    contract('SimpleVoting.admin', () => {
+    contract('SimpleVoting.admin', accounts => {
         it('must be the user who deployed the contract', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = await instance.admin();
 
-            let votingAdmin = web3.eth.accounts[0];
+            let votingAdmin = accounts[0];
 
             assert.strictEqual(admin, votingAdmin);
         })
     });
 
-    contract('SimpleVoting.isAdministrator', () => {
+    contract('SimpleVoting.isAdministrator', accounts => {
         it('must be the user who deployed the contract', async () => {
             let instance = await SimpleVoting.deployed();
 
-            let isAdmin = await instance.isAdministrator(web3.eth.accounts[0]);
+            let isAdmin = await instance.isAdministrator(accounts[0]);
 
             assert.isTrue(isAdmin);
         });
@@ -25,7 +25,7 @@ contract('SimpleVoting', accounts => {
         it("must NOT be the user who didn't deploy the contract", async () => {
             let instance = await SimpleVoting.deployed();
 
-            let isAdmin = await instance.isAdministrator(web3.eth.accounts[1]);
+            let isAdmin = await instance.isAdministrator(accounts[1]);
 
             assert.isFalse(isAdmin);
         })
@@ -34,8 +34,8 @@ contract('SimpleVoting', accounts => {
     contract('SimpleVoting.registerVoter', accounts => {
         it('must register voter from admin account', async () => {
             let instance = await SimpleVoting.deployed();
-            let admin = web3.eth.accounts[0];
-            let accountToRegister = web3.eth.accounts[1];
+            let admin = accounts[0];
+            let accountToRegister = accounts[1];
 
             await instance.registerVoter(accountToRegister, {from: admin, gas: 200000});
 
@@ -48,8 +48,8 @@ contract('SimpleVoting', accounts => {
 
         it('must throw exception if register voter NOT from admin account', async () => {
             let instance = await SimpleVoting.deployed();
-            let fakeAdmin = web3.eth.accounts[1];
-            let accountToRegister = web3.eth.accounts[2];
+            let fakeAdmin = accounts[1];
+            let accountToRegister = accounts[2];
 
             try {
                 await instance.registerVoter(accountToRegister, {from: fakeAdmin, gas: 200000})
@@ -60,8 +60,8 @@ contract('SimpleVoting', accounts => {
 
         it('must throw error if voter is already registered', async () => {
             let instance = await SimpleVoting.deployed();
-            let admin = web3.eth.accounts[0];
-            let accountToRegister = web3.eth.accounts[4];
+            let admin = accounts[0];
+            let accountToRegister = accounts[4];
 
             await instance.registerVoter(accountToRegister, {from: admin, gas: 200000});
 
@@ -74,8 +74,8 @@ contract('SimpleVoting', accounts => {
 
         it('must throw if NOT voter registration phase', async () => {
             let instance = await SimpleVoting.deployed();
-            let admin = web3.eth.accounts[0];
-            let accountToRegister = web3.eth.accounts[1];
+            let admin = accounts[0];
+            let accountToRegister = accounts[1];
 
             let status = await instance.currentStatus();
             assert.strictEqual(status.toNumber(), 0);
@@ -95,7 +95,7 @@ contract('SimpleVoting', accounts => {
     contract('SimpleVoting.startProposalRegistration', accounts => {
         it('must start proposal registration', async () => {
             let instance = await SimpleVoting.deployed();
-            let admin = web3.eth.accounts[0];
+            let admin = accounts[0];
 
             await instance.startProposalRegistration({from: admin, gas: 200000});
 

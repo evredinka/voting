@@ -36,9 +36,9 @@ contract SimpleVoting {
         emit VoterRegisteredEvent(_voter);
     }
 
-    //--- Proposals phase ---//
+    //--- Proposal phase ---//
     function startProposalRegistration() onlyAdmin onlyDuringVotersRegistration public {
-        currentStatus = WorkflowStatus.ProposalsRegistrationStarted;
+        currentStatus = WorkflowStatus.RegisteringProposals;
         emit ProposalsRegistrationStartedEvent();
         emit WorkflowStatusChangeEvent(WorkflowStatus.RegisteringVoters, currentStatus);
     }
@@ -48,17 +48,11 @@ contract SimpleVoting {
         emit ProposalRegisteredEvent(proposals.length - 1);
     }
 
-    function endProposalRegistration() onlyAdmin onlyDuringProposalsRegistration public {
-        currentStatus = WorkflowStatus.ProposalsRegistrationEnded;
-        emit ProposalsRegistrationEndedEvent();
-        emit WorkflowStatusChangeEvent(WorkflowStatus.ProposalsRegistrationStarted, currentStatus);
-    }
-
     //--- Voting phase ---//
     function startVotingSession() onlyAdmin onlyAfterProposalsRegistration public {
-        currentStatus = WorkflowStatus.VotingSessionStarted;
+        currentStatus = WorkflowStatus.VotingSession;
         emit VotingSessionStartedEvent();
-        emit WorkflowStatusChangeEvent(WorkflowStatus.ProposalsRegistrationEnded, currentStatus);
+        emit WorkflowStatusChangeEvent(WorkflowStatus.RegisteringProposals, currentStatus);
     }
 
     function vote(uint proposalId) onlyRegisteredVoter onlyDuringVotingSession public {
@@ -68,12 +62,6 @@ contract SimpleVoting {
         proposals[proposalId].voteCount += 1;
 
         emit VotedEvent(msg.sender, proposalId);
-    }
-
-    function endVotingSession() onlyAdmin onlyDuringVotingSession public {
-        currentStatus = WorkflowStatus.VotingSessionEnded;
-        emit VotingSessionEndedEvent();
-        emit WorkflowStatusChangeEvent(WorkflowStatus.VotingSessionStarted, currentStatus);
     }
 
     //--- Final phase ---//
@@ -93,7 +81,7 @@ contract SimpleVoting {
 
         emit VotesTalliedEvent();
         emit WorkflowStatusChangeEvent(
-            WorkflowStatus.VotingSessionEnded, currentStatus);
+            WorkflowStatus.VotingSession, currentStatus);
     }
 
     //--- Utility functions ---//
@@ -149,25 +137,25 @@ contract SimpleVoting {
     }
 
     modifier onlyDuringProposalsRegistration() {
-        require(currentStatus == WorkflowStatus.ProposalsRegistrationStarted,
+        require(currentStatus == WorkflowStatus.RegisteringProposals,
             "this function can be called only during proposals registration");
         _;
     }
 
     modifier onlyAfterProposalsRegistration() {
-        require(currentStatus == WorkflowStatus.ProposalsRegistrationEnded,
+        require(currentStatus == WorkflowStatus.RegisteringProposals,
             "this function can be called only after proposals registration has ended");
         _;
     }
 
     modifier onlyDuringVotingSession() {
-        require(currentStatus == WorkflowStatus.VotingSessionStarted,
+        require(currentStatus == WorkflowStatus.VotingSession,
             "this function can be called only during the voting session");
         _;
     }
 
     modifier onlyAfterVotingSession() {
-        require(currentStatus == WorkflowStatus.VotingSessionEnded,
+        require(currentStatus == WorkflowStatus.VotingSession,
             "this function can be called only after the voting session has ended");
         _;
     }
@@ -191,11 +179,8 @@ contract SimpleVoting {
 
     enum WorkflowStatus {
         RegisteringVoters,
-        ProposalsRegistrationStarted,
-        ProposalsRegistrationEnded,
-        VotingSessionStarted,
-
-        VotingSessionEnded,
+        RegisteringProposals,
+        VotingSession,
         VotesTallied
     }
 

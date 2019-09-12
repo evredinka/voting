@@ -89,46 +89,4 @@ contract('SimpleVoting', () => {
         });
     });
 
-    contract('SimpleVoting.endProposalRegistration normal flow', accounts => {
-        it('must end proposal registration', async () => {
-            let instance = await SimpleVoting.deployed();
-            let admin = accounts[0];
-
-            await instance.startProposalRegistration({from: admin, gas: 200000});
-            await instance.endProposalRegistration({from: admin, gas: 200000});
-
-            let status = await instance.currentStatus();
-            assert.strictEqual(status.toNumber(), 2);
-        });
-    });
-
-    contract('SimpleVoting.endProposalRegistration edge cases', accounts => {
-        it('must throw error if NOT invoked from admin', async () => {
-            let instance = await SimpleVoting.deployed();
-            let admin = accounts[0];
-            let fakeAdmin = accounts[1];
-
-            await instance.startProposalRegistration({from: admin, gas: 200000});
-
-            try {
-                await instance.endProposalRegistration({from: fakeAdmin, gas: 200000});
-            } catch (error) {
-                assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be the administrator');
-            }
-        });
-    });
-
-    contract('SimpleVoting.endProposalRegistration edge cases', accounts => {
-        it('must throw error if NOT proposal registration started phase', async () => {
-            let instance = await SimpleVoting.deployed();
-            let admin = accounts[0];
-
-            try {
-                await instance.endProposalRegistration({from: admin, gas: 200000});
-            } catch (error) {
-                assert.strictEqual(error.message, 'VM Exception while processing transaction: revert this function can be called only during proposals registration');
-            }
-        });
-    });
-
 });
