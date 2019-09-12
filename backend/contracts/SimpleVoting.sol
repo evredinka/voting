@@ -65,7 +65,9 @@ contract SimpleVoting {
     }
 
     //--- Final phase ---//
-    function tallyVotes() onlyAdmin onlyAfterVotingSession public {
+    function tallyVotes() onlyAdmin onlyDuringVotingSession public {
+        currentStatus = WorkflowStatus.VotesTallied;
+
         uint winningVoteCount = 0;
         uint winningProposalIndex = 0;
 
@@ -77,7 +79,6 @@ contract SimpleVoting {
         }
 
         winningProposalId = winningProposalIndex;
-        currentStatus = WorkflowStatus.VotesTallied;
 
         emit VotesTalliedEvent();
         emit WorkflowStatusChangeEvent(
@@ -151,12 +152,6 @@ contract SimpleVoting {
     modifier onlyDuringVotingSession() {
         require(currentStatus == WorkflowStatus.VotingSession,
             "this function can be called only during the voting session");
-        _;
-    }
-
-    modifier onlyAfterVotingSession() {
-        require(currentStatus == WorkflowStatus.VotingSession,
-            "this function can be called only after the voting session has ended");
         _;
     }
 
