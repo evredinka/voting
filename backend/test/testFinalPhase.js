@@ -20,10 +20,10 @@ contract('SimpleVoting', () => {
             await instance.endProposalRegistration({from: admin, gas: 200000});
 
             await instance.startVotingSession({from: admin, gas: 200000});
-
             await instance.vote(0, {from: voterAddress1, gas: 200000});
             await instance.vote(1, {from: voterAddress2, gas: 200000});
             await instance.vote(1, {from: voterAddress3, gas: 200000});
+            await instance.endVotingSession({from: admin, gas: 200000});
 
             await instance.tallyVotes({from: admin, gas: 200000});
 
@@ -34,7 +34,7 @@ contract('SimpleVoting', () => {
             assert.strictEqual(winnerDesc, 'Tomatoes');
 
             let status = await instance.currentStatus();
-            assert.strictEqual(status.toNumber(), 4)
+            assert.strictEqual(status.toNumber(), 5)
         });
     });
 

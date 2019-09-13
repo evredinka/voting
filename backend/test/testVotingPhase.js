@@ -27,6 +27,7 @@ contract('SimpleVoting', () => {
 
             try {
                 await instance.startVotingSession({from: notAdmin, gas: 200000});
+                assert.fail();
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be the administrator');
             }
@@ -40,6 +41,7 @@ contract('SimpleVoting', () => {
 
             try {
                 await instance.startVotingSession({from: admin, gas: 200000});
+                assert.fail();
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert this function can be called only after proposals registration has ended');
             }
@@ -87,6 +89,7 @@ contract('SimpleVoting', () => {
 
             try {
                 await instance.vote(0, {from: notAVoter, gas: 200000});
+                assert.fail();
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be a registered voter');
             }
@@ -105,6 +108,7 @@ contract('SimpleVoting', () => {
 
             try {
                 await instance.vote(0, {from: voter, gas: 200000});
+                assert.fail();
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert this function can be called only during the voting session');
             }
@@ -126,8 +130,43 @@ contract('SimpleVoting', () => {
 
             try {
                 await instance.vote(0, {from: voter, gas: 200000});
+                assert.fail();
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller has already voted');
+            }
+        });
+    });
+
+    contract('endVotingSession', accounts => {
+        it('must end voting phase', async () => {
+            let instance = await SimpleVoting.deployed();
+            let admin = accounts[0];
+
+            await instance.startProposalRegistration({from: admin, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
+            await instance.startVotingSession({from: admin, gas: 200000});
+            await instance.endVotingSession({from: admin, gas: 200000});
+
+            let status = await instance.currentStatus();
+            assert.strictEqual(status.toNumber(), 4)
+        });
+    });
+
+    contract('endVotingSession must throw error', accounts => {
+        it('if NOT invoked from admin', async () => {
+            let instance = await SimpleVoting.deployed();
+            let admin = accounts[0];
+            let notAdmin = accounts[1];
+
+            await instance.startProposalRegistration({from: admin, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
+            await instance.startVotingSession({from: admin, gas: 200000});
+
+            try {
+                await instance.endVotingSession({from: notAdmin, gas: 200000});
+                assert.fail();
+            } catch (error) {
+                assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be the administrator');
             }
         });
     });

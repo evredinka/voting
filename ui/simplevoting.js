@@ -298,7 +298,7 @@ function endProposalsRegistration() {
 					else
 					{
 						SimpleVoting.deployed()
-						   .then(instance => instance.endProposalsRegistration({from:adminAddress, gas:200000}))
+						   .then(instance => instance.endProposalRegistration({from:adminAddress, gas:200000}))
 						   .catch(e => $("#proposalsRegistrationMessage").html(e));
 					}
 				});
