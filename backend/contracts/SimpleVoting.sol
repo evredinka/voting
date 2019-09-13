@@ -24,23 +24,24 @@ contract SimpleVoting {
 
     constructor() public {
         admin = msg.sender;
-        currentStatus = WorkflowStatus.RegisteringVoters;
+        currentStatus = WorkflowStatus.VotersRegistration;
     }
 
-    function registerVoter(address _voter) onlyAdmin onlyDuringVotersRegistration public {
-        require(!voters[_voter].isRegistered, "the voter is already registered");
-        voters[_voter].isRegistered = true;
-        voters[_voter].hasVoted = false;
-        voters[_voter].votedProposalId = 0;
+    function registerVoter(address voter) onlyAdmin onlyDuringVotersRegistration public {
+        require(!voters[voter].isRegistered, "the voter is already registered");
 
-        emit VoterRegisteredEvent(_voter);
+        voters[voter].isRegistered = true;
+        voters[voter].hasVoted = false;
+        voters[voter].votedProposalId = 0;
+
+        emit VoterRegisteredEvent(voter);
     }
 
     //--- Proposal phase ---//
     function startProposalRegistration() onlyAdmin onlyDuringVotersRegistration public {
-        currentStatus = WorkflowStatus.RegisteringProposals;
+        currentStatus = WorkflowStatus.ProposalsRegistration;
         emit ProposalsRegistrationStartedEvent();
-        emit WorkflowStatusChangeEvent(WorkflowStatus.RegisteringVoters, currentStatus);
+        emit WorkflowStatusChangeEvent(WorkflowStatus.VotersRegistration, currentStatus);
     }
 
     function registerProposal(string proposal) onlyRegisteredVoter onlyDuringProposalsRegistration public {
@@ -48,11 +49,17 @@ contract SimpleVoting {
         emit ProposalRegisteredEvent(proposals.length - 1);
     }
 
+    function endProposalRegistration() onlyAdmin onlyDuringProposalsRegistration public {
+        currentStatus = WorkflowStatus.ProposalsRegistrationEnded;
+        emit ProposalsRegistrationEndedEvent();
+        emit WorkflowStatusChangeEvent(WorkflowStatus.ProposalsRegistration, currentStatus);
+    }
+
     //--- Voting phase ---//
     function startVotingSession() onlyAdmin onlyAfterProposalsRegistration public {
         currentStatus = WorkflowStatus.VotingSession;
         emit VotingSessionStartedEvent();
-        emit WorkflowStatusChangeEvent(WorkflowStatus.RegisteringProposals, currentStatus);
+        emit WorkflowStatusChangeEvent(WorkflowStatus.ProposalsRegistration, currentStatus);
     }
 
     function vote(uint proposalId) onlyRegisteredVoter onlyDuringVotingSession public {
@@ -132,19 +139,19 @@ contract SimpleVoting {
     }
 
     modifier onlyDuringVotersRegistration() {
-        require(currentStatus == WorkflowStatus.RegisteringVoters,
-            "this function can be called only before proposals registration has started");
+        require(currentStatus == WorkflowStatus.VotersRegistration,
+            "this function can be called only during voters registration");
         _;
     }
 
     modifier onlyDuringProposalsRegistration() {
-        require(currentStatus == WorkflowStatus.RegisteringProposals,
+        require(currentStatus == WorkflowStatus.ProposalsRegistration,
             "this function can be called only during proposals registration");
         _;
     }
 
     modifier onlyAfterProposalsRegistration() {
-        require(currentStatus == WorkflowStatus.RegisteringProposals,
+        require(currentStatus == WorkflowStatus.ProposalsRegistrationEnded,
             "this function can be called only after proposals registration has ended");
         _;
     }
@@ -173,8 +180,9 @@ contract SimpleVoting {
     }
 
     enum WorkflowStatus {
-        RegisteringVoters,
-        RegisteringProposals,
+        VotersRegistration,
+        ProposalsRegistration,
+        ProposalsRegistrationEnded,
         VotingSession,
         VotesTallied
     }

@@ -5,27 +5,29 @@ contract('SimpleVoting', () => {
     contract('SimpleVoting.admin', accounts => {
         it('must be the user who deployed the contract', async () => {
             let instance = await SimpleVoting.deployed();
-            let admin = await instance.admin();
+            let actualAdmin = await instance.admin();
 
-            let votingAdmin = accounts[0];
+            let expectedAdmin = accounts[0];
 
-            assert.strictEqual(admin, votingAdmin);
+            assert.strictEqual(actualAdmin, expectedAdmin);
         })
     });
 
     contract('SimpleVoting.isAdministrator', accounts => {
         it('must be the user who deployed the contract', async () => {
             let instance = await SimpleVoting.deployed();
+            let expectedAdmin = accounts[0];
 
-            let isAdmin = await instance.isAdministrator(accounts[0]);
+            let isAdmin = await instance.isAdministrator(expectedAdmin);
 
             assert.isTrue(isAdmin);
         });
 
         it("must NOT be the user who didn't deploy the contract", async () => {
             let instance = await SimpleVoting.deployed();
+            let notAdmin = accounts[1];
 
-            let isAdmin = await instance.isAdministrator(accounts[1]);
+            let isAdmin = await instance.isAdministrator(notAdmin);
 
             assert.isFalse(isAdmin);
         })
@@ -48,11 +50,11 @@ contract('SimpleVoting', () => {
 
         it('must throw exception if register voter NOT from admin account', async () => {
             let instance = await SimpleVoting.deployed();
-            let fakeAdmin = accounts[1];
+            let notAdmin = accounts[1];
             let accountToRegister = accounts[2];
 
             try {
-                await instance.registerVoter(accountToRegister, {from: fakeAdmin, gas: 200000})
+                await instance.registerVoter(accountToRegister, {from: notAdmin, gas: 200000})
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be the administrator');
             }
@@ -87,21 +89,9 @@ contract('SimpleVoting', () => {
             try {
                 await instance.registerVoter(accountToRegister, {from: admin, gas: 200000})
             } catch (error) {
-                assert.strictEqual(error.message, 'VM Exception while processing transaction: revert this function can be called only before proposals registration has started');
+                assert.strictEqual(error.message, 'VM Exception while processing transaction: revert this function can be called only during voters registration');
             }
         })
     });
-
-    contract('SimpleVoting.startProposalRegistration', accounts => {
-        it('must start proposal registration', async () => {
-            let instance = await SimpleVoting.deployed();
-            let admin = accounts[0];
-
-            await instance.startProposalRegistration({from: admin, gas: 200000});
-
-            let status = await instance.currentStatus();
-            assert.strictEqual(status.toNumber(), 1);
-        })
-    })
 
 });

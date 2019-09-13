@@ -2,37 +2,39 @@ const SimpleVoting = artifacts.require("./SimpleVoting.sol");
 
 contract('SimpleVoting', () => {
 
-    contract('startVotingSession normal flow', accounts => {
+    contract('startVotingSession', accounts => {
         it('must start voting phase', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
 
             await instance.startProposalRegistration({from: admin, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
             await instance.startVotingSession({from: admin, gas: 200000});
 
             let status = await instance.currentStatus();
-            assert.strictEqual(status.toNumber(), 2)
+            assert.strictEqual(status.toNumber(), 3)
         });
     });
 
-    contract('startVotingSession edge cases', accounts => {
-        it('must throw error if NOT invoked from admin', async () => {
+    contract('startVotingSession must throw error', accounts => {
+        it('if NOT invoked from admin', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
-            let fakeAdmin = accounts[1];
+            let notAdmin = accounts[1];
 
             await instance.startProposalRegistration({from: admin, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
 
             try {
-                await instance.startVotingSession({from: fakeAdmin, gas: 200000});
+                await instance.startVotingSession({from: notAdmin, gas: 200000});
             } catch (error) {
                 assert.strictEqual(error.message, 'VM Exception while processing transaction: revert the caller of this function must be the administrator');
             }
         });
     });
 
-    contract('startVotingSession edge cases', accounts => {
-        it('must throw error if NOT registering proposals phase', async () => {
+    contract('startVotingSession must throw error', accounts => {
+        it('if NOT registering proposals phase', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
 
@@ -44,8 +46,8 @@ contract('SimpleVoting', () => {
         });
     });
 
-    contract('vote normal flow', accounts => {
-        it('should assign one vote for proposal', async () => {
+    contract('vote', accounts => {
+        it('should assign one vote to proposal', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
             let voterAddress = accounts[1];
@@ -53,6 +55,7 @@ contract('SimpleVoting', () => {
             await instance.registerVoter(voterAddress, {from: admin, gas: 200000});
             await instance.startProposalRegistration({from: admin, gas: 200000});
             await instance.registerProposal('Bananas', {from: voterAddress, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
             await instance.startVotingSession({from: admin, gas: 200000});
             await instance.vote(0, {from: voterAddress, gas: 200000});
 
@@ -69,8 +72,8 @@ contract('SimpleVoting', () => {
         });
     });
 
-    contract('vote edge cases', accounts => {
-        it('must throw error if vote NOT from registered voter', async () => {
+    contract('vote must throw error', accounts => {
+        it('if vote NOT from registered voter', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
             let voter = accounts[1];
@@ -79,6 +82,7 @@ contract('SimpleVoting', () => {
             await instance.registerVoter(voter, {from: admin, gas: 200000});
             await instance.startProposalRegistration({from: admin, gas: 200000});
             await instance.registerProposal('Bananas', {from: voter, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
             await instance.startVotingSession({from: admin, gas: 200000});
 
             try {
@@ -89,8 +93,8 @@ contract('SimpleVoting', () => {
         });
     });
 
-    contract('vote edge cases', accounts => {
-        it('must throw error if NOT voting phase', async () => {
+    contract('vote must throw error', accounts => {
+        it('if NOT voting phase', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
             let voter = accounts[1];
@@ -107,8 +111,8 @@ contract('SimpleVoting', () => {
         });
     });
 
-    contract('vote edge cases', accounts => {
-        it('must throw error if voter has already voted', async () => {
+    contract('vote must throw error', accounts => {
+        it('if voter has already voted', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
             let voter = accounts[1];
@@ -116,6 +120,7 @@ contract('SimpleVoting', () => {
             await instance.registerVoter(voter, {from: admin, gas: 200000});
             await instance.startProposalRegistration({from: admin, gas: 200000});
             await instance.registerProposal('Bananas', {from: voter, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
             await instance.startVotingSession({from: admin, gas: 200000});
             await instance.vote(0, {from: voter, gas: 200000});
 

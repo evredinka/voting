@@ -2,7 +2,7 @@ const SimpleVoting = artifacts.require("./SimpleVoting.sol");
 
 contract('SimpleVoting', () => {
 
-    contract('tallyVotes normal flow', accounts => {
+    contract('tallyVotes', accounts => {
         it('must define a winner', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
@@ -15,9 +15,10 @@ contract('SimpleVoting', () => {
             await instance.registerVoter(voterAddress3, {from: admin, gas: 200000});
 
             await instance.startProposalRegistration({from: admin, gas: 200000});
-
             await instance.registerProposal('Bananas', {from: voterAddress1, gas: 200000});
             await instance.registerProposal('Tomatoes', {from: voterAddress2, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
+
             await instance.startVotingSession({from: admin, gas: 200000});
 
             await instance.vote(0, {from: voterAddress1, gas: 200000});
@@ -33,21 +34,19 @@ contract('SimpleVoting', () => {
             assert.strictEqual(winnerDesc, 'Tomatoes');
 
             let status = await instance.currentStatus();
-            assert.strictEqual(status.toNumber(), 3)
+            assert.strictEqual(status.toNumber(), 4)
         });
     });
 
-    contract('tallyVotes invoked NOT from admin', accounts => {
-        it('must throw error', async () => {
+    contract('tallyVotes must throw error', accounts => {
+        it('if invoked NOT from admin', async () => {
             let instance = await SimpleVoting.deployed();
             let admin = accounts[0];
             let voterAddress = accounts[1];
 
-            await instance.registerVoter(voterAddress, {from: admin, gas: 200000});
             await instance.startProposalRegistration({from: admin, gas: 200000});
-            await instance.registerProposal('Bananas', {from: voterAddress, gas: 200000});
+            await instance.endProposalRegistration({from: admin, gas: 200000});
             await instance.startVotingSession({from: admin, gas: 200000});
-            await instance.vote(0, {from: voterAddress, gas: 200000});
 
             try {
                 await instance.tallyVotes({from: voterAddress, gas: 200000});
