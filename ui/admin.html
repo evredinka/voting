@@ -80,6 +80,22 @@
             </tr>
         </table>
     </tr>
+    <br/>
+    <tr><b>Register proposal</b></tr>
+    <tr>
+        <table border="0" cellpadding="0" id='registerProposal'>
+            <tr>
+                <td>Voter address:</td>
+                <td><input type="text" id="voterAddress" width="400"/></td>
+                <td>Proposal description:</td>
+                <td><input type="text" id="proposalDescription" width="400"/></td>
+                <td>
+                    <button onclick="registerProposal()">Register</button>
+                </td>
+                <td id='proposalRegistrationMessage'></td>
+            </tr>
+        </table>
+    </tr>
     </tr>
     <br/>
     <tr><b>Voting session</b></tr>
@@ -93,6 +109,22 @@
                     <button onclick="endVotingSession()">End</button>
                 </td>
                 <td id='votingSessionMessage'></td>
+            </tr>
+        </table>
+    </tr>
+    <br/>
+    <tr><b>Vote</b></tr>
+    <tr>
+        <table border="0" cellpadding="0" id='vote'>
+            <tr>
+                <td>Voter address:</td>
+                <td><input type="text" id="voterAddress" width="400"/></td>
+                <td>Vote for proposal number:</td>
+                <td><input type="text" id="proposalId" width="400"/></td>
+                <td>
+                    <button onclick="vote()">Register</button>
+                </td>
+                <td id='voteConfirmationMessage'></td>
             </tr>
         </table>
     </tr>
