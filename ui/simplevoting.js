@@ -1,6 +1,15 @@
 let SimpleVoting;
 let web3;
 
+const WorkflowStatus = {
+    VotersRegistration: 0,
+    ProposalsRegistration: 1,
+    ProposalsRegistrationEnded: 2,
+    VotingSession: 3,
+    VotingSessionEnded: 4,
+    VotesTallied: 5
+};
+
 window.onload = () => {
     $.getJSON("./contracts/SimpleVoting.json", json => {
         SimpleVoting = TruffleContract(json);
@@ -121,23 +130,23 @@ function refreshWorkflowStatus() {
         .then(workflowStatus => {
             let workflowStatusDescription;
 
-            switch (workflowStatus.toString()) {
-                case '0':
+            switch (parseInt(workflowStatus)) {
+                case WorkflowStatus.VotersRegistration:
                     workflowStatusDescription = "Registering Voters";
                     break;
-                case '1':
+                case WorkflowStatus.ProposalsRegistration:
                     workflowStatusDescription = "Proposals registration Started";
                     break;
-                case '2':
+                case WorkflowStatus.ProposalsRegistrationEnded:
                     workflowStatusDescription = "Proposals registration Ended";
                     break;
-                case '3':
+                case WorkflowStatus.VotingSession:
                     workflowStatusDescription = "Voting session Started";
                     break;
-                case '4':
+                case WorkflowStatus.VotingSessionEnded:
                     workflowStatusDescription = "Voting session Ended";
                     break;
-                case '5':
+                case WorkflowStatus.VotesTallied:
                     workflowStatusDescription = "Votes have been tallied";
                     break;
                 default:
@@ -194,7 +203,7 @@ function registerVoter() {
                             return SimpleVoting.deployed()
                                 .then(instance => instance.getWorkflowStatus())
                                 .then(workflowStatus => {
-                                    if (workflowStatus > 0)
+                                    if (workflowStatus > WorkflowStatus.VotersRegistration)
                                         $("#voterRegistrationMessage").html('Voters registration has already ended');
                                     else {
                                         SimpleVoting.deployed()
@@ -242,7 +251,7 @@ function startProposalsRegistration() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus > 0)
+                        if (workflowStatus >= WorkflowStatus.ProposalsRegistration)
                             $("#proposalsRegistrationMessage").html('The proposals registration session has already been started');
                         else {
                             SimpleVoting.deployed()
@@ -269,9 +278,9 @@ function endProposalsRegistration() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 1)
+                        if (workflowStatus < WorkflowStatus.VotersRegistration)
                             $("#proposalsRegistrationMessage").html('The proposals registration session has not started yet');
-                        else if (workflowStatus > 1)
+                        else if (workflowStatus > WorkflowStatus.ProposalsRegistration)
                             $("#proposalsRegistrationMessage").html('The proposals registration session has already been ended');
                         else {
                             SimpleVoting.deployed()
@@ -298,9 +307,9 @@ function startVotingSession() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 2)
+                        if (workflowStatus < WorkflowStatus.ProposalsRegistrationEnded)
                             $("#votingSessionMessage").html('The proposals registration session has not ended yet');
-                        else if (workflowStatus > 2)
+                        else if (workflowStatus > WorkflowStatus.ProposalsRegistrationEnded)
                             $("#votingSessionMessage").html('The voting session has already been started');
                         else {
                             SimpleVoting.deployed()
@@ -327,9 +336,9 @@ function endVotingSession() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 3)
+                        if (workflowStatus < WorkflowStatus.VotingSession)
                             $("#votingSessionMessage").html('The voting session has not started yet');
-                        else if (workflowStatus > 3)
+                        else if (workflowStatus > WorkflowStatus.VotingSession)
                             $("#votingSessionMessage").html('The voting session has already ended');
                         else {
                             SimpleVoting.deployed()
@@ -356,9 +365,9 @@ function tallyVotes() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 4)
+                        if (workflowStatus < WorkflowStatus.VotingSessionEnded)
                             $("#votingTallyingMessage").html('The voting session has not ended yet');
-                        else if (workflowStatus > 4)
+                        else if (workflowStatus > WorkflowStatus.VotingSessionEnded)
                             $("#votingTallyingMessage").html('Votes have already been tallied');
                         else {
                             SimpleVoting.deployed()
@@ -386,9 +395,9 @@ function registerProposal() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 1)
+                        if (workflowStatus < WorkflowStatus.ProposalsRegistration)
                             $("#proposalRegistrationMessage").html('The proposal registration session has not started yet');
-                        else if (workflowStatus > 1)
+                        else if (workflowStatus > WorkflowStatus.ProposalsRegistration)
                             $("#proposalRegistrationMessage").html('The proposal registration session has already ended');
                         else {
                             SimpleVoting.deployed()
@@ -414,7 +423,7 @@ function loadProposalsTable() {
 
             let innerHtml = "<tr><td><b>Proposal Id</b></td><td><b>Description</b></td>";
 
-            j = 0;
+            let j = 0;
             for (let i = 0; i < proposalsNumber; i++) {
                 getProposalDescription(i)
                     .then(description => {
@@ -443,9 +452,9 @@ function vote() {
                 return SimpleVoting.deployed()
                     .then(instance => instance.getWorkflowStatus())
                     .then(workflowStatus => {
-                        if (workflowStatus < 3)
+                        if (workflowStatus < WorkflowStatus.VotingSession)
                             $("#voteConfirmationMessage").html('The voting session has not started yet');
-                        else if (workflowStatus > 3)
+                        else if (workflowStatus > WorkflowStatus.VotingSession)
                             $("#voteConfirmationMessage").html('The voting session has already ended');
                         else {
                             SimpleVoting.deployed()
@@ -478,7 +487,7 @@ function loadResultsTable() {
         .then(instance => instance.getWorkflowStatus())
         .then(workflowStatus => {
             console.log(`workflowStatus is ${workflowStatus}`);
-            if (workflowStatus == 5) {
+            if (workflowStatus == WorkflowStatus.VotesTallied) {
                 let innerHtml = "<tr><td><b>Winning Proposal</b></td><td></td></tr>";
 
                 SimpleVoting.deployed()
