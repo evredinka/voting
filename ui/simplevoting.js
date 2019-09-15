@@ -194,7 +194,7 @@ function registerVoter() {
 	$("#voterRegistrationMessage").html('');
 
 	var adminAddress = $("#adminAddress").val();
-	var voterToRegister = $("#voterAddress").val();
+	var voterToRegister = $("#registerVoterAddress").val();
 
 	SimpleVoting.deployed()
 	.then(instance => instance.isAdministrator(adminAddress))
@@ -413,7 +413,7 @@ function registerProposal() {
 
 	$("#proposalRegistrationMessage").html('');
 
-	var voterAddress = $("#voterAddress").val();
+	var voterAddress = $("#proposalVoterAddress").val();
 	var proposalDescription = $("#proposalDescription").val();
 
 	SimpleVoting.deployed()
