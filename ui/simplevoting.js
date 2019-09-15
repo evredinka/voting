@@ -537,7 +537,7 @@ function loadResultsTable() {
 						   innerHtml = innerHtml +  "<tr><td><b>Description:</b></td><td>" + winningProposalDescription  +"</td></tr>";
 
 						   SimpleVoting.deployed()
-				           .then(instance => instance.getWinningProposaVoteCounts())
+				           .then(instance => instance.getWinningProposalVoteCounts())
 					       .then(winningProposalVoteCounts => {
 						           innerHtml = innerHtml +  "<tr><td><b>Votes count:</b></td><td>" + winningProposalVoteCounts  +"</td></tr>";
 
